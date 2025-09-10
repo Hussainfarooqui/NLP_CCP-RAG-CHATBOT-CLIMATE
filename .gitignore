@@ -35,4 +35,4 @@ Thumbs.db
 # Data folder (ignore if you don't want to push datasets)
 data/*
 !data/index.faiss
-!data/chunks.pkl
+!data/chunks.json
