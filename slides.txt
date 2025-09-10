@@ -1,0 +1,32 @@
+Slide 1 — Title
+Title: RAG Chatbot for Climate Research
+Subtitle: Retrieval-Augmented Generation (FAISS + LLM)
+Authors: <Your Name>
+Course: Complex Computing Problem
+Date: <date>
+
+Slide 2 — Problem & Motivation
+- Need: Fast, accurate answers from domain literature
+- Limitations of pure generative models: hallucinations, lack of citations
+- RAG approach: retrieve + generate → factual + explainable
+
+Slide 3 — Architecture
+- Data ingestion (PDF/TXT) → Preprocessing & chunking
+- Embeddings (sentence-transformers)
+- Vector store (FAISS)
+- Retriever → LLM (OpenAI/HF)
+- Streamlit UI
+
+Slide 4 — Implementation Details
+- Chunk size: 450 words, overlap 50
+- Embedding model: all-MiniLM-L6-v2
+- Index: FAISS IndexFlatIP
+- Generation: OpenAI text-davinci-003 (or local HF backup)
+
+Slide 5 — Demo screenshots / Flow
+- Show sample Q, retrieved contexts, and generated answer
+
+Slide 6 — Evaluation, Challenges & Next Steps
+- Evaluation metrics: P@k, human factuality checks, latency
+- Challenges: PDF parsing, hallucination risk
+- Next steps: reranker, provenance scoring, deployment improvements

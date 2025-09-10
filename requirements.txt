@@ -1,0 +1,14 @@
+streamlit
+transformers
+sentence-transformers
+faiss-cpu
+tqdm
+numpy
+pandas
+python-dotenv
+openai
+langchain
+requests
+nltk
+pdfplumber
+gunicorn
