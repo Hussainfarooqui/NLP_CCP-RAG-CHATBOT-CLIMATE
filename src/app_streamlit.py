@@ -1,19 +1,19 @@
+# src/app_streamlit.py
 from dotenv import load_dotenv
 import os
-import json
 import streamlit as st
-from groq import GroqClient
+from groq import Groq  # ✅ Correct import
 from retriever import Retriever
 
 # 🔹 Load .env file
 load_dotenv()
 
-# 🔹 Get Groq API key from environment (fallback to st.secrets)
+# 🔹 Get Groq API key from environment or Streamlit secrets
 GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
 
 # 🔹 Streamlit App Title
-st.set_page_config(page_title="Climate Chatbot (RAG + Groq)", layout="wide")
-st.title("🌍 Climate Chatbot (PDF + Groq LLM)")
+st.set_page_config(page_title="RAG-Chatbot-Climate ", layout="wide")
+st.title("🌍 RAG-Chatbot-Climate  By Muhammad Hussain Ahmed Farooqui")
 
 # 🔹 Initialize Retriever (PDF knowledge base)
 @st.cache_resource
@@ -23,19 +23,11 @@ def load_retriever():
 retriever = load_retriever()
 
 # 🔹 Initialize Groq Client
-client = GroqClient(api_key=GROQ_API_KEY)
+client = Groq(api_key=GROQ_API_KEY)
 
-# 🔹 Debug Check: Groq API key & client connectivity
+# 🔹 Check API key
 if not GROQ_API_KEY:
     st.error("❌ Groq API key not found! Please set it in your .env file or in Streamlit secrets.")
-    st.stop()  # Stop the app if key is missing
-
-try:
-    # Quick test: list available models
-    models = client.chat.models.list()
-    st.success(f"✅ Groq client initialized! Available models: {', '.join(models)}")
-except Exception as e:
-    st.error(f"❌ Failed to initialize Groq client: {e}")
     st.stop()
 
 # 🔹 Function to generate answers using Groq LLM
@@ -71,7 +63,8 @@ Assistant:
         temperature=0.3,
     )
 
-    return response.choices[0].message["content"]
+    # ✅ Access content correctly using .content
+    return response.choices[0].message.content
 
 # 🔹 Initialize Chat History in Session
 if "history" not in st.session_state:
@@ -98,7 +91,7 @@ with col2:
 # 🔹 Display Chat History
 if st.session_state.history:
     st.markdown("## 📝 Conversation History")
-    for i, chat in enumerate(st.session_state.history):
+    for chat in st.session_state.history:
         st.markdown(f"**You:** {chat['user']}")
         st.markdown(f"**Assistant:** {chat['assistant']}")
         st.markdown("---")
