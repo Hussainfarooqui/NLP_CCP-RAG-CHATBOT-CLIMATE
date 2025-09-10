@@ -1,23 +1,19 @@
 from dotenv import load_dotenv
 import os
-# load .env file
-load_dotenv()
-
-# get API key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-import os
 import json
 import streamlit as st
-from groq import Groq
+from groq import GroqClient
 from retriever import Retriever
+
+# 🔹 Load .env file
+load_dotenv()
+
+# 🔹 Get Groq API key from environment (fallback to st.secrets)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
 
 # 🔹 Streamlit App Title
 st.set_page_config(page_title="Climate Chatbot (RAG + Groq)", layout="wide")
 st.title("🌍 Climate Chatbot (PDF + Groq LLM)")
-
-# 🔹 Load Groq API Key
-GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # 🔹 Initialize Retriever (PDF knowledge base)
 @st.cache_resource
@@ -27,8 +23,22 @@ def load_retriever():
 retriever = load_retriever()
 
 # 🔹 Initialize Groq Client
-client = Groq(api_key=GROQ_API_KEY)
+client = GroqClient(api_key=GROQ_API_KEY)
 
+# 🔹 Debug Check: Groq API key & client connectivity
+if not GROQ_API_KEY:
+    st.error("❌ Groq API key not found! Please set it in your .env file or in Streamlit secrets.")
+    st.stop()  # Stop the app if key is missing
+
+try:
+    # Quick test: list available models
+    models = client.chat.models.list()
+    st.success(f"✅ Groq client initialized! Available models: {', '.join(models)}")
+except Exception as e:
+    st.error(f"❌ Failed to initialize Groq client: {e}")
+    st.stop()
+
+# 🔹 Function to generate answers using Groq LLM
 def generate_answer(query, history):
     # Step 1: Retrieve context from PDF
     results = retriever.query(query, top_k=3)
@@ -41,18 +51,18 @@ def generate_answer(query, history):
 
     # Step 3: Construct prompt
     prompt = f"""
-    You are a climate research assistant. 
-    Use the following context from PDF and previous conversation to answer.
-    
-    Context from PDF:
-    {context_text}
-    
-    Conversation so far:
-    {conversation}
-    
-    User: {query}
-    Assistant:
-    """
+You are a climate research assistant. 
+Use the following context from PDF and previous conversation to answer.
+
+Context from PDF:
+{context_text}
+
+Conversation so far:
+{conversation}
+
+User: {query}
+Assistant:
+"""
 
     # Step 4: Call Groq LLM
     response = client.chat.completions.create(
