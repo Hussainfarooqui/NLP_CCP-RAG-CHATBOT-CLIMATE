@@ -16,7 +16,7 @@ env/
 # Environment variables
 .env
 
-# Streamlit cache (agar use karte ho)
+# Streamlit cache
 .streamlit/
 
 # Logs and temporary files
@@ -32,10 +32,6 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Data folder (ignore if you don't want to push datasets)
-data/*
-!data/index.faiss
-!data/chunks.json
-
-# Streamlit cache (agar use karte ho)
-.streamlit/
+# Data folder — ignore generated FAISS index and chunk data
+data/chunks.json
+data/index.faiss
