@@ -36,3 +36,6 @@ Thumbs.db
 data/*
 !data/index.faiss
 !data/chunks.json
+
+# Streamlit cache (agar use karte ho)
+.streamlit/
