@@ -2,8 +2,9 @@
 from dotenv import load_dotenv
 import os
 import streamlit as st
-from groq import Groq  # ✅ Correct import
+from groq import Groq
 from retriever import Retriever
+from build_index import build_index  # Import your index builder
 
 # 🔹 Load .env file
 load_dotenv()
@@ -12,10 +13,20 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
 
 # 🔹 Streamlit App Title
-st.set_page_config(page_title="RAG-Chatbot-Climate ", layout="wide")
-st.title("🌍 RAG-Chatbot-Climate  By Muhammad Hussain Ahmed Farooqui")
+st.set_page_config(page_title="Climate Chatbot (RAG + Groq)", layout="wide")
+st.title("🌍 Climate Chatbot (PDF + Groq LLM)")
 
-# 🔹 Initialize Retriever (PDF knowledge base)
+# 🔹 Ensure FAISS index exists
+INDEX_DIR = "data"
+INDEX_FILE = os.path.join(INDEX_DIR, "index.faiss")
+CHUNKS_FILE = os.path.join(INDEX_DIR, "chunks.json")
+
+if not os.path.exists(INDEX_FILE) or not os.path.exists(CHUNKS_FILE):
+    st.info("Building FAISS index from PDF… This may take a moment.")
+    build_index()  # Generates index.faiss + chunks.json
+    st.success("Index built successfully!")
+
+# 🔹 Initialize Retriever
 @st.cache_resource
 def load_retriever():
     return Retriever()
@@ -63,7 +74,7 @@ Assistant:
         temperature=0.3,
     )
 
-    # ✅ Access content correctly using .content
+    # ✅ Access content correctly
     return response.choices[0].message.content
 
 # 🔹 Initialize Chat History in Session

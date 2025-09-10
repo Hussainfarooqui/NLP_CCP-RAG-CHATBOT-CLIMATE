@@ -4,45 +4,58 @@ import json
 import pdfplumber
 from sentence_transformers import SentenceTransformer
 import faiss
-import numpy as np
 
-# 🔹 Config
-PDF_PATH = "data/NLP.pdf"       # Path to your PDF
-INDEX_DIR = "data"              # Folder to save index & chunks
-MODEL_NAME = "all-MiniLM-L6-v2" # Sentence Transformer model
-CHUNK_SIZE = 400                # Approx words per chunk
+# 🔹 Paths
+DATA_DIR = "data"
+PDF_FILE = os.path.join(DATA_DIR, "NLP.pdf")  # your PDF
+INDEX_FILE = os.path.join(DATA_DIR, "index.faiss")
+CHUNKS_FILE = os.path.join(DATA_DIR, "chunks.json")
 
-# 🔹 Step 1: Load PDF and split into chunks
-chunks = []
-with pdfplumber.open(PDF_PATH) as pdf:
-    for page in pdf.pages:
-        text = page.extract_text()
-        if not text:
-            continue
-        words = text.split()
-        for i in range(0, len(words), CHUNK_SIZE):
-            chunk = " ".join(words[i:i+CHUNK_SIZE])
-            chunks.append(chunk)
+# 🔹 Model
+MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_DIM = 384  # all-MiniLM-L6-v2 dimension
 
-print(f"✅ Extracted {len(chunks)} chunks from PDF.")
+# 🔹 Ensure data directory exists
+os.makedirs(DATA_DIR, exist_ok=True)
 
-# 🔹 Step 2: Generate embeddings
-model = SentenceTransformer(MODEL_NAME)
-embeddings = model.encode(chunks, convert_to_numpy=True)
-faiss.normalize_L2(embeddings)
-print("✅ Generated embeddings.")
+def extract_text_chunks(pdf_path, chunk_size=500):
+    chunks = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                # Split text into chunks
+                for i in range(0, len(text), chunk_size):
+                    chunk = text[i:i+chunk_size].strip()
+                    if chunk:
+                        chunks.append(chunk)
+    return chunks
 
-# 🔹 Step 3: Build FAISS index
-dim = embeddings.shape[1]
-index = faiss.IndexFlatIP(dim)  # Inner product similarity
-index.add(embeddings)
-print(f"✅ Built FAISS index with {index.ntotal} vectors.")
+def build_index():
+    print("Extracting text from PDF...")
+    chunks = extract_text_chunks(PDF_FILE)
+    print(f"✅ Extracted {len(chunks)} chunks from PDF.")
 
-# 🔹 Step 4: Save index and chunks
-os.makedirs(INDEX_DIR, exist_ok=True)
-faiss.write_index(index, os.path.join(INDEX_DIR, "index.faiss"))
+    print("Generating embeddings...")
+    model = SentenceTransformer(MODEL_NAME)
+    embeddings = model.encode(chunks, convert_to_numpy=True, show_progress_bar=True)
+    
+    # Normalize embeddings
+    faiss.normalize_L2(embeddings)
 
-with open(os.path.join(INDEX_DIR, "chunks.json"), "w", encoding="utf-8") as f:
-    json.dump(chunks, f, ensure_ascii=False, indent=2)
+    print("Building FAISS index...")
+    index = faiss.IndexFlatIP(EMBEDDING_DIM)  # Inner product for cosine similarity
+    index.add(embeddings)
 
-print(f"✅ Saved index and chunks to '{INDEX_DIR}'.")
+    # Save index
+    faiss.write_index(index, INDEX_FILE)
+    print(f"✅ FAISS index saved to {INDEX_FILE}")
+
+    # Save chunks metadata
+    with open(CHUNKS_FILE, "w", encoding="utf-8") as f:
+        json.dump(chunks, f, ensure_ascii=False, indent=2)
+    print(f"✅ Chunks saved to {CHUNKS_FILE}")
+
+# 🔹 If run directly, build index
+if __name__ == "__main__":
+    build_index()

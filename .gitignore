@@ -32,6 +32,11 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Data folder — ignore generated FAISS index and chunk data
+# Ignore generated FAISS files
 data/chunks.json
 data/index.faiss
+
+# Python & environment
+__pycache__/
+venv/
+.env
