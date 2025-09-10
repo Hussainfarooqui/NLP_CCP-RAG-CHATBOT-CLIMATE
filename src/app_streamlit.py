@@ -13,8 +13,8 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
 
 # 🔹 Streamlit App Title
-st.set_page_config(page_title="Climate Chatbot (RAG + Groq)", layout="wide")
-st.title("🌍 Climate Chatbot (PDF + Groq LLM)")
+st.set_page_config(page_title="RAG_Climate-Chatbot By Muhammad Hussain Ahmed Farooqui", layout="wide")
+st.title("🌍 RAG_Climate-Chatbot By Muhammad Hussain Ahmed Farooqui")
 
 # 🔹 Ensure FAISS index exists
 INDEX_DIR = "data"
